@@ -31,13 +31,13 @@ function evaluations_disponibles() {
             AND cn.id_groupe = '".$_SESSION[PREFIXE]['id_groupe_session']."'
             AND cn.id_cahier_notes = de.id_racine
             AND de.id_conteneur = co.id ";
-  $query_devoirs=mysql_query($sql);
-  if(0 != mysql_num_rows($query_devoirs)) {
-    while ($row = mysql_fetch_array($query_devoirs, MYSQL_ASSOC)) {
+  $query_devoirs=mysqli_query($GLOBALS["mysqli"],$sql);
+  if(0 != mysqli_num_rows($query_devoirs)) {
+    while ($row = mysqli_fetch_array($query_devoirs, MYSQLI_ASSOC)) {
        $table_eval[] = $row;
     }
   }  
-  mysql_free_result($query_devoirs);
+  mysqli_free_result($query_devoirs);
   return $table_eval;
 }
 
@@ -71,11 +71,11 @@ function eval_du_groupe($tableau_id_devoir, $id_groupe) {
 		       WHERE de.id = '".$devoir."'
                  AND de.id_racine = cn.id_cahier_notes
                  AND cn.id_groupe = '".$id_groupe."'";
-    $query_devoirs=mysql_query($sql_devoirs);
-    if (mysql_num_rows($query_devoirs)!=0) {
+    $query_devoirs=mysqli_query($GLOBALS["mysqli"],$sql_devoirs);
+    if (mysqli_num_rows($query_devoirs)!=0) {
       $devoirs_groupe[] = $devoir;
     }
-    mysql_free_result($query_devoirs);
+    mysqli_free_result($query_devoirs);
   }
   unset ($devoir);
   return $devoirs_groupe;
@@ -98,13 +98,13 @@ function eval_dans_periode($tableau_id_devoir , $periode) {
              AND pe.num_periode = '$periode'
              AND pe.verouiller = 'N' ;";
     
-    $query_devoirs_ouverts = mysql_query($sql_devoirs_ouverts);
-    if(mysql_num_rows($query_devoirs_ouverts)==0) {
+    $query_devoirs_ouverts = mysqli_query($GLOBALS["mysqli"],$sql_devoirs_ouverts);
+    if(mysqli_num_rows($query_devoirs_ouverts)==0) {
       charge_message("Le devoir ".$devoir." n'est pas modifiable");
     } else {
       $devoirs_groupe[]=$devoir; 
     }
-  mysql_free_result($query_devoirs_ouverts);
+  mysqli_free_result($query_devoirs_ouverts);
   }
   return $devoirs_groupe;
 }
@@ -166,15 +166,15 @@ function evaluations_modifiables() {
                  AND pe.id_classe = cl.id_classe
                  AND pe.verouiller = 'N'
                ORDER BY cl.id_classe, pe.num_periode ;";
-  $query_periodes = mysql_query($sql_periodes);
+  $query_periodes = mysqli_query($GLOBALS["mysqli"],$sql_periodes);
   
-  if(mysql_num_rows($query_periodes)==0) {
+  if(mysqli_num_rows($query_periodes)==0) {
     // il n'y a pas de période ouverte
     charge_message("Il n'y a pas de période ouverte");
-    mysql_free_result($query_periodes);
+    mysqli_free_result($query_periodes);
     return FALSE; 
   }
-  mysql_free_result($query_periodes);
+  mysqli_free_result($query_periodes);
   
   unset ($devoirs_groupe);
   $devoirs_groupe=array();
@@ -208,9 +208,9 @@ function evaluations_modifiables() {
                  FROM cn_devoirs de , cn_conteneurs cn
                  WHERE de.id = '".$devoir."'
                    AND de.id_conteneur = cn.id ;";
-      $query_eval = mysql_query($sql_eval);
-      if(0 != mysql_num_rows($query_eval)) {
-        while ($row = mysql_fetch_array($query_eval, MYSQL_ASSOC)) {
+      $query_eval = mysqli_query($GLOBALS["mysqli"],$sql_eval);
+      if(0 != mysqli_num_rows($query_eval)) {
+        while ($row = mysqli_fetch_array($query_eval, MYSQLI_ASSOC)) {
           $date=date("d/m/Y",$row['date']);
           $stat=statistique($row['id']);
           $table_evaluations[]=array('id' => $row['id'],
@@ -224,7 +224,7 @@ function evaluations_modifiables() {
 				     'note_sur' => $row['note_sur']);
         }
       }
-      mysql_free_result($query_eval);
+      mysqli_free_result($query_eval);
     }
     unset ($devoir);
   }
@@ -260,9 +260,9 @@ function cherche_notes($groupe_eleves, $eval_valides) {
       $sql_notes = "SELECT * FROM cn_notes_devoirs 
                       WHERE login = '".$eleves['login']."'
                         AND id_devoir = '".$evaluation['id']."' ;"; 
-      $query_notes = mysql_query($sql_notes);
-      if(1 == mysql_num_rows($query_notes)) {
-        while ($row = mysql_fetch_array($query_notes, MYSQL_ASSOC)) {
+      $query_notes = mysqli_query($GLOBALS["mysqli"],$sql_notes);
+      if(1 == mysqli_num_rows($query_notes)) {
+        while ($row = mysqli_fetch_array($query_notes, MYSQLI_ASSOC)) {
           switch ($row['statut']) {
             case ABSENT:
               $note = ABSENT;
@@ -287,7 +287,7 @@ function cherche_notes($groupe_eleves, $eval_valides) {
       }
     }
     
-    mysql_free_result($query_notes);
+    mysqli_free_result($query_notes);
     
     $index = count($tableau_notes);
     $tableau_notes[$index] = array('login' =>$eleves['login'], 'index' => $index, 'eleve' => $eleves,'notes' => $notes_eleves);
@@ -330,12 +330,12 @@ function enregistre_notes($donnees) {
     
     $sql_devoir="SELECT note_sur, id_conteneur FROM cn_devoirs 
 	     WHERE id = '".$id_devoir."'";
-    $query_devoir = mysql_query($sql_devoir);
-    $eval=mysql_fetch_object($query_devoir);
+    $query_devoir = mysqli_query($GLOBALS["mysqli"],$sql_devoir);
+    $eval=mysqli_fetch_object($query_devoir);
     $notes_max[$id_devoir]['note_sur']=$eval->note_sur;
     $notes_max[$id_devoir]['id_conteneur']=$eval->id_conteneur;
     
-    mysql_free_result($query_devoir);
+    mysqli_free_result($query_devoir);
     
   }
   unset ($id_devoir);
@@ -427,7 +427,7 @@ function enregistre_notes($donnees) {
                     WHERE login = '".$ligne_tableau['login']."'
                     AND id_devoir = '".$ligne_tableau['notes'][$id_eval]['id_devoir']."'";
       }
-      $query_table = mysql_query($sql_table);
+      $query_table = mysqli_query($GLOBALS["mysqli"],$sql_table);
        if (!$query_table) {
          charge_message("ERREUR : Erreur lors de l'enregistrement dans la base ! (".$index.")") ;
          charge_message("<strong>Vérifiez vos données puis enregistrez à nouveau</strong>") ;
@@ -438,14 +438,14 @@ function enregistre_notes($donnees) {
         $_current_group["eleves"][$_SESSION[PREFIXE]['periode_num']]["list"][] = $ligne_tableau['login'];
         $arret='no';
         $sql_conteneur= "SELECT id_conteneur FROM cn_devoirs WHERE id = '".$ligne_tableau['notes'][$id_eval]['id_devoir']."'";  
-        $query_conteneur = mysql_query($sql_conteneur);  
+        $query_conteneur = mysqli_query($GLOBALS["mysqli"],$sql_conteneur);  
         if (!$query_conteneur) {
           charge_message("ERREUR : Echec de la mise à jour des conteneurs") ;
-          mysql_free_result($query_conteneur);
+          mysqli_free_result($query_conteneur);
           return FALSE;	
         }
-        $conteneur=mysql_fetch_object($query_conteneur);
-        mysql_free_result($query_conteneur);
+        $conteneur=mysqli_fetch_object($query_conteneur);
+        mysqli_free_result($query_conteneur);
         mise_a_jour_moyennes_conteneurs($_current_group, $_SESSION[PREFIXE]['periode_num'],$_SESSION[PREFIXE]['id_racine'],$conteneur->id_conteneur,$arret);
   
     }
@@ -457,11 +457,11 @@ function enregistre_notes($donnees) {
     $sql="SELECT 1=1 FROM matieres_notes 
             WHERE periode='".$_SESSION[PREFIXE]['periode_num']."'
               AND id_groupe='".$_SESSION[PREFIXE]['id_groupe_session']."';";
-    $test_bulletin=mysql_query($sql);
-    if(mysql_num_rows($test_bulletin)>0) {
+    $test_bulletin=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($test_bulletin)>0) {
       charge_message("ATTENTION: Des notes sont présentes sur le bulletin.<br />Si vous avez modifié ou ajouté des notes, pensez à mettre à jour la recopie vers le bulletin.") ;
     }
-    mysql_free_result($test_bulletin);
+    mysqli_free_result($test_bulletin);
   
   return TRUE;
   
@@ -478,14 +478,14 @@ function note_existe($login , $id_eval) {
   $sql="SELECT 1=1 FROM cn_notes_devoirs 
           WHERE login = '".$login."'
             AND id_devoir = '".$id_eval."'";
-  $query = mysql_query($sql);
-  if(0 == mysql_num_rows($query)) {
+  $query = mysqli_query($GLOBALS["mysqli"],$sql);
+  if(0 == mysqli_num_rows($query)) {
     // elle n'existe pas
-    mysql_free_result($query);
+    mysqli_free_result($query);
     return FALSE;
   }else {
     // on met à jour
-    mysql_free_result($query);
+    mysqli_free_result($query);
     return TRUE;
   }
       
@@ -502,19 +502,19 @@ function statistique($id_evaluation) {
   $sql="SELECT `note` FROM `cn_notes_devoirs` 
            WHERE `id_devoir` = '".$id_evaluation."'
              AND `statut` = ''";
-  $result = mysql_query($sql);
-  if(0 == mysql_num_rows($result)) {
+  $result = mysqli_query($GLOBALS["mysqli"],$sql);
+  if(0 == mysqli_num_rows($result)) {
     // Il n'y a pas de notes
     $stat=FALSE;
   } else {
-    while ($row = mysql_fetch_assoc($result)) {
+    while ($row = mysqli_fetch_assoc($result)) {
       if (is_numeric($row['note'])) {
         $stat[]=$row['note'];
       }
     }
     sort($stat);
   }
-  mysql_free_result($result);
+  mysqli_free_result($result);
   
   return $stat;
 }

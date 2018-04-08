@@ -44,8 +44,8 @@ function traite_groupe(){
   if (is_numeric($id_groupe) && $id_groupe > 0) {
     // on vérifie que le prof a accès au groupe
     $sql="SELECT 1=1 FROM j_groupes_professeurs WHERE id_groupe='$id_groupe' AND login='".$_SESSION['login']."';";
-    $test_prof_groupe=mysql_query($sql);
-    if(mysql_num_rows($test_prof_groupe)==0) {
+    $test_prof_groupe=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($test_prof_groupe)==0) {
       $id_groupe=GROUPE_INTERDIT;
     }
 
@@ -100,18 +100,18 @@ function eval_dispo($periodes) {
 		      AND cn.id_groupe='".$_SESSION[PREFIXE]['id_groupe_session']."' 
 		      AND co.id=cn.id_cahier_notes
 	           ORDER BY co.nom_complet " ;
-  $res_test=mysql_query($sql);
+  $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
   /* *
    * Si on a un conteneur
   /* */ 
-  if(mysql_num_rows($res_test)!=0){
+  if(mysqli_num_rows($res_test)!=0){
   /* *
    * Si la période est close ne récupérer que le conteneur du trimestre
   /* */
-      $nom_complet = htmlentities(mysql_result($res_test, 0, 'co.nom_complet'),ENT_COMPAT);
-      $nom_court= htmlentities(mysql_result($res_test, 0, 'co.nom_court'),ENT_COMPAT);
+      $nom_complet = htmlentities(old_mysql_result($res_test, 0, 'co.nom_complet'),ENT_COMPAT);
+      $nom_court= htmlentities(old_mysql_result($res_test, 0, 'co.nom_court'),ENT_COMPAT);
     if ($periodes[$_SESSION[PREFIXE]['periode_num']-1]['periode_close']) {     
-      $conteneur[]=array('id'=>mysql_result($res_test, 0, 'co.id'),
+      $conteneur[]=array('id'=>old_mysql_result($res_test, 0, 'co.id'),
 			 'nom_complet'=>$nom_complet,
 	                 'nom_court'=>$nom_court, 
 			 'sous_conteneur'=>array(),
@@ -120,9 +120,9 @@ function eval_dispo($periodes) {
 
   /* sinon récupérer les sous-conteneurs et les évaluations */
     } else {
-      $id = mysql_result($res_test, 0, 'co.id');
-      $nom_complet = htmlentities(mysql_result($res_test, 0, 'co.nom_complet'),ENT_COMPAT);
-      $nom_court= htmlentities(mysql_result($res_test, 0, 'co.nom_court'),ENT_COMPAT);
+      $id = old_mysql_result($res_test, 0, 'co.id');
+      $nom_complet = htmlentities(old_mysql_result($res_test, 0, 'co.nom_complet'),ENT_COMPAT);
+      $nom_court= htmlentities(old_mysql_result($res_test, 0, 'co.nom_court'),ENT_COMPAT);
       $sous_elements=sous_modules($id);
       $evaluations=eval_conteneur($id);
       $conteneur[]=array('id' => $id,
@@ -153,11 +153,11 @@ function sous_modules($id) {
 	       WHERE co.parent='".$id."'
 	       ORDER BY co.nom_complet " ;
   
-  $res_test=mysql_query($sql);
+  $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
   
-  if(mysql_num_rows($res_test)!=0){
+  if(mysqli_num_rows($res_test)!=0){
     
-   while($row=mysql_fetch_array($res_test)) {
+   while($row=mysqli_fetch_array($res_test)) {
             
       $id = $row['id'];
       $nom_complet = htmlentities($row['nom_complet'],ENT_COMPAT);
@@ -198,13 +198,13 @@ function eval_conteneur($id) {
 	       FROM  cn_devoirs ev
 	       WHERE ev.id_conteneur='".$id."'" ;
   
-  $res_test=mysql_query($sql);
+  $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
   
-  if(mysql_num_rows($res_test)!=0){
+  if(mysqli_num_rows($res_test)!=0){
     
     $nb_eleves = 0;
     
-   while($row=mysql_fetch_array($res_test)) {
+   while($row=mysqli_fetch_array($res_test)) {
      $id_eval = $row['id'];
      $nom_complet = $row['nom_complet'];
      $nom_court = $row['nom_court'];
@@ -218,9 +218,9 @@ function eval_conteneur($id) {
 	     WHERE id_devoir = '".$id_eval."'
 	       AND (statut != 'v'
 	         AND statut != '-')" ;
-     $res_test_notes = mysql_query($sql_notes);
+     $res_test_notes = mysqli_query($GLOBALS["mysqli"],$sql_notes);
      if ($res_test_notes) {
-       $nb_notes = mysql_num_rows($res_test_notes) ;
+       $nb_notes = mysqli_num_rows($res_test_notes) ;
      } else {
        $nb_notes = 0 ;
      }
@@ -231,8 +231,8 @@ function eval_conteneur($id) {
 	       WHERE el.id_groupe = no.id_groupe
 		 AND (no.id_cahier_notes = '".$id_racine."'
 		 AND el.periode = '".$_SESSION[PREFIXE]['periode_num']."')" ;     
-       $res_test_eleves = mysql_query($sql_eleves);
-       $nb_eleves = mysql_num_rows($res_test_eleves) ;
+       $res_test_eleves = mysqli_query($GLOBALS["mysqli"],$sql_eleves);
+       $nb_eleves = mysqli_num_rows($res_test_eleves) ;
      }
   
      $evaluations[] = array('id' => $id_eval,
@@ -292,8 +292,8 @@ function moyenne_existe($num_periode){
 	    WHERE `id_groupe` = '".$_SESSION[PREFIXE]['id_groupe_session']."'
             AND `periode` = '".$num_periode."'
       ";
-    $res_test=mysql_query($sql);
-    if(mysql_num_rows($res_test)!=0){
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($res_test)!=0){
       return TRUE ;
     }
   }
@@ -315,8 +315,8 @@ function appreciation_existe($num_periode){
 	    WHERE `id_groupe` = '".$_SESSION[PREFIXE]['id_groupe_session']."'
             AND `periode` = '".$num_periode."'
       ";
-    $res_test=mysql_query($sql);
-    if(mysql_num_rows($res_test)!=0){
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($res_test)!=0){
       return TRUE ;
     }
   }
@@ -338,8 +338,8 @@ function ouverte($num_periode){
 		   AND p.verouiller='N' 
 		   AND p.id_classe=cl.id_classe
 		   AND cl.id_groupe='".$_SESSION[PREFIXE]['id_groupe_session']."'" ;
-    $res_test=mysql_query($sql);
-    if(mysql_num_rows($res_test)!=0){
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($res_test)!=0){
       return TRUE ;
     }
   return FALSE;

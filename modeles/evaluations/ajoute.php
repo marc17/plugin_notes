@@ -134,7 +134,7 @@ function enregisteEval() {
       $sql="INSERT INTO cn_devoirs (`id_conteneur`,`id_racine`,`nom_court`,`nom_complet`,`description`,`facultatif`,`date`,`coef`,`note_sur`,`ramener_sur_referentiel`,`display_parents`,`display_parents_app`,`date_ele_resp`)
 	VALUES ('".$donnees_passees['emplacement']."','".$_SESSION[PREFIXE]['id_racine']."','".$donnees_passees['nom']."','".$donnees_passees['nomComplet']."','".$donnees_passees['evalDescription']."','".$donnees_passees['moyenne']."','".$donnees_passees['display_date']."','".$donnees_passees['coefEval']."','".$donnees_passees['noteSur']."','".$donnees_passees['noteSur20']."','".$donnees_passees['noteSurReleve']."','".$donnees_passees['appSurReleve']."','".$donnees_passees['date_ele_resp']."')";
     }
-    if (mysql_query($sql)) {
+    if (mysqli_query($GLOBALS["mysqli"],$sql)) {
       return TRUE;
     } else {
       charge_message("Échec lors de l'enregistrement dans la base");
@@ -177,9 +177,9 @@ function prepare_date ($traite_date) {
 function recharge_id($id_eval) {
   $donnees_passees['id_eval'] = $id_eval;
   $sql = "SELECT * FROM cn_devoirs WHERE `id` = '".$donnees_passees['id_eval']."' ";
-  $result = mysql_query($sql);
+  $result = mysqli_query($GLOBALS["mysqli"],$sql);
   if ($result) {
-    $row=mysql_fetch_object($result);
+    $row=mysqli_fetch_object($result);
     $donnees_passees['emplacement'] = $row->id_conteneur;
     $donnees_passees['nom'] = $row->nom_court;
     $donnees_passees['nomComplet'] = $row->nom_complet;

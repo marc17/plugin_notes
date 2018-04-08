@@ -36,9 +36,9 @@
     $sql="SELECT `id_cahier_notes` FROM `cn_cahier_notes`
             WHERE `id_groupe`='".$_SESSION[PREFIXE]['id_groupe_session']."'
 	    AND `periode`='".$num_trim."'";
-    $result=mysql_query($sql);
+    $result=mysqli_query($GLOBALS["mysqli"],$sql);
     if ($result) {
-      $id_trim_precedent = mysql_result($result, 0, 'id_cahier_notes');
+      $id_trim_precedent = old_mysql_result($result, 0, 'id_cahier_notes');
     } else {
       // On n'a pas trouvé de conteneur pour la période précédente
       charge_message("Aucun cahier de texte trouvé pour la période précédente");
@@ -128,26 +128,26 @@
  */
   function charge_conteneur($id_conteneur) {
     $sql="SELECT * FROM `cn_conteneurs` WHERE `id`= '".$id_conteneur."'";
-    $result = mysql_query($sql);
+    $result = mysqli_query($GLOBALS["mysqli"],$sql);
     if ($result) {
-      if(mysql_num_rows($result)!=0){
-        $nom_complet = trim(htmlentities(mysql_result($result, 0, 'nom_complet'),ENT_COMPAT));
-        $nom_court= trim(htmlentities(mysql_result($result, 0, 'nom_court'),ENT_COMPAT));
+      if(mysqli_num_rows($result)!=0){
+        $nom_complet = trim(htmlentities(old_mysql_result($result, 0, 'nom_complet'),ENT_COMPAT));
+        $nom_court= trim(htmlentities(old_mysql_result($result, 0, 'nom_court'),ENT_COMPAT));
 
         // on récupère les conteneurs enfants
         $sous_elements=sous_modules_conteneur($id_conteneur);
 
         $conteneur=array('id' => $id_conteneur,
-	                 'id_racine'=>mysql_result($result, 0, 'display_parents'),
+	                 'id_racine'=>old_mysql_result($result, 0, 'display_parents'),
                      'nom_complet'=>$nom_complet,
                      'nom_court'=>$nom_court,
-	                 'description'=>mysql_result($result, 0, 'description'),
-	                 'mode'=>mysql_result($result, 0, 'mode'),
-                      'coef'=>mysql_result($result, 0, 'coef'),
-	                 'arrondir'=>mysql_result($result, 0, 'arrondir'),
-	                 'ponderation'=>mysql_result($result, 0, 'ponderation'),
-                     'display_parents'=>mysql_result($result, 0, 'display_parents'),
-                     'display_bulletin'=>mysql_result($result, 0, 'display_bulletin'),
+	                 'description'=>old_mysql_result($result, 0, 'description'),
+	                 'mode'=>old_mysql_result($result, 0, 'mode'),
+                      'coef'=>old_mysql_result($result, 0, 'coef'),
+	                 'arrondir'=>old_mysql_result($result, 0, 'arrondir'),
+	                 'ponderation'=>old_mysql_result($result, 0, 'ponderation'),
+                     'display_parents'=>old_mysql_result($result, 0, 'display_parents'),
+                     'display_bulletin'=>old_mysql_result($result, 0, 'display_bulletin'),
                      'sous_conteneur'=>$sous_elements);	
         return $conteneur;
       }      
@@ -186,10 +186,10 @@
              WHERE co.parent='".$id."'
              ORDER BY co.nom_complet " ;
 
-    $res_test=mysql_query($sql);
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
 
-    if(mysql_num_rows($res_test)!=0){
-      while($row=mysql_fetch_array($res_test)) {
+    if(mysqli_num_rows($res_test)!=0){
+      while($row=mysqli_fetch_array($res_test)) {
 
         $id = $row['id'];
         $nom_complet = $row['nom_complet'];
@@ -266,7 +266,7 @@
                   '".$ligne['display_bulletin']."',
                   '".$id_parent."')";
           
-        if (!mysql_query($sql)) {
+        if (!mysqli_query($GLOBALS["mysqli"],$sql)) {
           return FALSE;
         }
         

@@ -15,13 +15,13 @@ function peut_noter_groupe($id_groupe) {
   $sql="SELECT 1=1  FROM j_groupes_professeurs
               WHERE login = '".$_SESSION["login"]."'
                 AND id_groupe = '".$id_groupe."'";
-  $query = mysql_query($sql);
-  if(mysql_num_rows($query)==1) {
-    mysql_free_result($query);
+  $query = mysqli_query($GLOBALS["mysqli"],$sql);
+  if(mysqli_num_rows($query)==1) {
+    mysqli_free_result($query);
     return TRUE;
   }
-  mysql_free_result($query);
-  $_SESSION[PREFIXE]['tbs_msg'] ="Vous ne pouvez pas noter ce groupe : ".mysql_num_rows($query)." renvoyé par <br />".$sql;
+  mysqli_free_result($query);
+  $_SESSION[PREFIXE]['tbs_msg'] ="Vous ne pouvez pas noter ce groupe : ".mysqli_num_rows($query)." renvoyé par <br />".$sql;
   return FALSE; 
 }
 
@@ -66,9 +66,9 @@ function trouveEleves() {
 		 AND gr.periode = '".$_SESSION[PREFIXE]['periode_num']."'
 	       ORDER BY ut.nom, ut.prenom
 	;";
-  $query_eleves = mysql_query($sql_eleves);
-  if(0 != mysql_num_rows($query_eleves)) {	
-    while ($row = mysql_fetch_array($query_eleves, MYSQL_ASSOC)) {
+  $query_eleves = mysqli_query($GLOBALS["mysqli"],$sql_eleves);
+  if(0 != mysqli_num_rows($query_eleves)) {	
+    while ($row = mysqli_fetch_array($query_eleves, MYSQLI_ASSOC)) {
        $table_eleves[]=array('nom' => $row['nom'],
 			     'prenom' => $row['prenom'],
 			     'login' => $row['login'],
@@ -76,7 +76,7 @@ function trouveEleves() {
     }
   }
   
-  mysql_free_result($query_eleves);
+  mysqli_free_result($query_eleves);
   return $table_eleves ;
   
 }
@@ -94,9 +94,9 @@ function groupe_long($id_groupe){
   $sql="SELECT gr.* FROM groupes gr
               WHERE gr.id = '".$id_groupe."'
     ";
-  $res_test=mysql_query($sql);
-  if(mysql_num_rows($res_test)==1){
-    $row=mysql_fetch_array($res_test);
+  $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+  if(mysqli_num_rows($res_test)==1){
+    $row=mysqli_fetch_array($res_test);
     $classes=classe_groupe($id_groupe);
     $groupes=array('id'=> $id_groupe,
 	'name'=> $row["name"], 
@@ -123,9 +123,9 @@ function classe_groupe($id_groupe){
 		AND gr.id_classe = cl.id
         ORDER BY cl.classe
     ";
-  $res_test=mysql_query($sql);
-  if (mysql_num_rows($res_test)!=0) {
-    while($row=mysql_fetch_array($res_test)) {
+  $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+  if (mysqli_num_rows($res_test)!=0) {
+    while($row=mysqli_fetch_array($res_test)) {
       $classes[]=$row; 
     } 
     return $classes;
@@ -182,9 +182,9 @@ function cahier_notes_object() {
 		AND cn.periode = '".$_SESSION[PREFIXE]['periode_num']."'
     ";
     
-    $res_test=mysql_query($sql);
-    if(mysql_num_rows($res_test)!=0){
-      $cahier=mysql_fetch_object($res_test); 
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($res_test)!=0){
+      $cahier=mysqli_fetch_object($res_test); 
       return $cahier ;
     }
   return FALSE;
@@ -204,13 +204,13 @@ function cree_carnet_notes($id_groupe) {
   $current_group = get_group($id_groupe);
   $nom_complet_matiere = $current_group["matiere"]["nom_complet"];
   $nom_court_matiere = $current_group["matiere"]["matiere"];
-  $reg = mysql_query("INSERT INTO cn_conteneurs SET id_racine='', nom_court='".$current_group["description"]."', nom_complet='".$nom_complet_matiere."', description = '', mode = '2', coef = '1.0', arrondir = 's1', ponderation = '0.0', display_parents = '0', display_bulletin = '1', parent = '0'");
+  $reg = mysqli_query($GLOBALS["mysqli"],"INSERT INTO cn_conteneurs SET id_racine='', nom_court='".$current_group["description"]."', nom_complet='".$nom_complet_matiere."', description = '', mode = '2', coef = '1.0', arrondir = 's1', ponderation = '0.0', display_parents = '0', display_bulletin = '1', parent = '0'");
   if ($reg) {
-    $id_racine = mysql_insert_id();
-    $reg = mysql_query("UPDATE cn_conteneurs SET id_racine='$id_racine', parent = '0' WHERE id='$id_racine'");
+    $id_racine = mysqli_insert_id();
+    $reg = mysqli_query($GLOBALS["mysqli"],"UPDATE cn_conteneurs SET id_racine='$id_racine', parent = '0' WHERE id='$id_racine'");
     $_SESSION[PREFIXE]['id_racine'] = $id_racine ;
 		if ($reg) {
-			$reg = mysql_query("INSERT INTO cn_cahier_notes SET id_groupe = '$id_groupe', periode = '".$_SESSION[PREFIXE]['periode_num']."', id_cahier_notes='$id_racine'");
+			$reg = mysqli_query($GLOBALS["mysqli"],"INSERT INTO cn_cahier_notes SET id_groupe = '$id_groupe', periode = '".$_SESSION[PREFIXE]['periode_num']."', id_cahier_notes='$id_racine'");
 			if ($reg) {
 				return (TRUE);
 			} else  {
@@ -241,9 +241,9 @@ function toutes_matieres_cnotes($conteneur) {
 		ORDER BY co.parent
     ";
   
-    $res_test=mysql_query($sql);
-    if(mysql_num_rows($res_test)!=0){
-      while($row=mysql_fetch_object($res_test)) {
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($res_test)!=0){
+      while($row=mysqli_fetch_object($res_test)) {
 	$matieres[]=$row;
       }
       return $matieres;
@@ -275,9 +275,9 @@ function nom_trimestre($id_trim = FALSE, $id_classe = FALSE) {
               WHERE id_classe = '".$id_classe."'
 		AND num_periode = '".$id_trim."'
     ";
-  $res_test=mysql_query($sql);
-  if (mysql_num_rows($res_test)!=0) {
-    $row=mysql_fetch_object($res_test);
+  $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+  if (mysqli_num_rows($res_test)!=0) {
+    $row=mysqli_fetch_object($res_test);
     return $row;
   }
   return FALSE;
@@ -325,8 +325,8 @@ function recupere_periodes($current_group){
     $sql="SELECT * FROM periodes WHERE num_periode='$i' 
 		   AND id_classe='".$current_group["classes"]["list"][0]."' 
 		   AND verouiller='N'";
-    $res_test=mysql_query($sql);
-    if(mysql_num_rows($res_test)==0){
+    $res_test=mysqli_query($GLOBALS["mysqli"],$sql);
+    if(mysqli_num_rows($res_test)==0){
       $periode_close=TRUE ;
     }
     

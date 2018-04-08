@@ -29,11 +29,11 @@ function donnee_evaluation($id_eval) {
   $sql="SELECT de.*
           FROM cn_devoirs de
           WHERE de.id ='".$id_eval."' ";
-  $query_devoirs=mysql_query($sql);
-  if(0 != mysql_num_rows($query_devoirs)) {
-    $table_eval = mysql_fetch_array($query_devoirs, MYSQL_ASSOC);
+  $query_devoirs=mysqli_query($GLOBALS["mysqli"],$sql);
+  if(0 != mysqli_num_rows($query_devoirs)) {
+    $table_eval = mysqli_fetch_array($query_devoirs, MYSQLI_ASSOC);
   }  
-  mysql_free_result($query_devoirs);
+  mysqli_free_result($query_devoirs);
   
   return $table_eval;
 }
@@ -54,13 +54,13 @@ function colle_notes($colle_notes,$id_eval) {
   // TODO : Effacer le saut de ligne de fin quand on colle depuis un tableur pour pouvoir tester aussi si on a trop de notes
   
   $sql="SELECT note_sur FROM cn_devoirs WHERE id = '".$id_eval."'";
-  $query = mysql_query($sql);
-  if(0 == mysql_num_rows($query)) {
+  $query = mysqli_query($GLOBALS["mysqli"],$sql);
+  if(0 == mysqli_num_rows($query)) {
     charge_message("ERREUR : L'évaluation n'a pas de note maximale de référence") ;
-    mysql_free_result($query);
+    mysqli_free_result($query);
     return FALSE;	  
   } else {
-    $note_max = mysql_fetch_row($query);
+    $note_max = mysqli_fetch_row($query);
   }
   
   $notes=array();
@@ -224,8 +224,8 @@ function enregistre_colle() {
     $sql= "SELECT 1=1 FROM cn_notes_devoirs 
              WHERE login = '".$eleve['login']."' 
              AND id_devoir = '".$_SESSION[PREFIXE]['eval_colle']."'";
-    $query = mysql_query($sql);
-    if (0 == mysql_num_rows($query)) {
+    $query = mysqli_query($GLOBALS["mysqli"],$sql);
+    if (0 == mysqli_num_rows($query)) {
       // On a pas d'enregistrement, on le crée
       $sql_table="INSERT INTO cn_notes_devoirs (login, id_devoir, note, comment, statut)
 		   VALUES ('".$eleve['login']."', '".$_SESSION[PREFIXE]['eval_colle']."', '".$note."', '".$comment."', '".$statut."')";
@@ -248,10 +248,10 @@ function enregistre_colle() {
       
     }
     
-    if (!mysql_query($sql_table)) {
+    if (!mysqli_query($GLOBALS["mysqli"],$sql_table)) {
 	charge_message("ERREUR : Echec de l'enregistrement dans la base ! (".$eleve['nom']." ".$eleve['prenom'].")") ;
 	charge_message("<bold>Collez à nouveau vos données et vérifier les puis enregistrez à nouveau</bold>") ;
-	mysql_free_result($sql_table);	
+	mysqli_free_result($sql_table);	
 	return FALSE;	
     }
     
@@ -260,14 +260,14 @@ function enregistre_colle() {
     $_current_group["eleves"][$_SESSION[PREFIXE]['periode_num']]["list"][] = $eleve['login'];
     $arret='no';
     $sql_conteneur= "SELECT id_conteneur FROM cn_devoirs WHERE id = '".$_SESSION[PREFIXE]['eval_colle']."'";  
-    $query_conteneur = mysql_query($sql_conteneur);  
+    $query_conteneur = mysqli_query($GLOBALS["mysqli"],$sql_conteneur);  
     if (!$query_conteneur) {
       charge_message("ERREUR : Echec de la mise à jour des conteneurs") ;
-      mysql_free_result($query_conteneur);
+      mysqli_free_result($query_conteneur);
       return FALSE;	
     }
-    $conteneur=mysql_fetch_object($query_conteneur);
-    mysql_free_result($query_conteneur);
+    $conteneur=mysqli_fetch_object($query_conteneur);
+    mysqli_free_result($query_conteneur);
     mise_a_jour_moyennes_conteneurs($_current_group, $_SESSION[PREFIXE]['periode_num'],$_SESSION[PREFIXE]['id_racine'],$conteneur->id_conteneur,$arret);
   
   }

@@ -121,7 +121,7 @@ function enregisteConteneur() {
 	        '".$donnees_passees['emplacement']."')";
     }
     //echo $sql.'<br />';
-    if (mysql_query($sql)) {
+    if (mysqli_query($GLOBALS["mysqli"],$sql)) {
       return TRUE;
     } else {
       charge_message("Échec lors de l'enregistrement dans la base<br />".$sql);
@@ -159,9 +159,9 @@ function recharge_conteneur($id_conteneur){
   // On récupère les données du conteneur
   $sql="SELECT * FROM `cn_conteneurs`
           WHERE `id` ='".$id_conteneur."' ";
-  $result = mysql_query($sql);
+  $result = mysqli_query($GLOBALS["mysqli"],$sql);
   if ($result) {
-    $donnee_recu = mysql_fetch_array($result);
+    $donnee_recu = mysqli_fetch_array($result);
     $conteneur['id_conteneur'] = $donnee_recu['id'];
     $conteneur['id_racine'] = $donnee_recu['id_racine'];
     $conteneur['nomCourt'] = $donnee_recu['nom_court'];
@@ -175,12 +175,12 @@ function recharge_conteneur($id_conteneur){
     $conteneur['noteSurBulletin'] = $donnee_recu['display_bulletin'];
     $conteneur['emplacement'] = $donnee_recu['parent']; 
   } else {
-    mysql_free_result($result); 
+    mysqli_free_result($result); 
     charge_message("Échec lors de la récupération dans la base");
     return FALSE;
   }
   
-  mysql_free_result($result); 
+  mysqli_free_result($result); 
   return $conteneur;
 }
 
